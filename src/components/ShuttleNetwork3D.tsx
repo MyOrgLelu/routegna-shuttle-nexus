@@ -61,94 +61,177 @@ export const ShuttleNetwork3D = () => {
     directionalLight.shadow.mapSize.height = 2048;
     scene.add(directionalLight);
 
-    // Create shuttle nodes
+    // Create detailed shuttle/car geometry
     const createShuttleGeometry = () => {
-      const geometry = new THREE.Group();
+      const group = new THREE.Group();
       
-      // Main body (elongated box)
-      const bodyGeometry = new THREE.BoxGeometry(0.8, 0.3, 0.4);
+      // Main body (car chassis)
+      const bodyGeometry = new THREE.BoxGeometry(1.2, 0.4, 0.6);
       const bodyMaterial = new THREE.MeshPhongMaterial({ 
         color: 0xff6b35,
-        shininess: 100,
+        shininess: 150,
         emissive: 0xff3b2e,
-        emissiveIntensity: 0.1 
+        emissiveIntensity: 0.05,
+        metalness: 0.3
       });
       const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
-      geometry.add(bodyMesh);
+      group.add(bodyMesh);
 
-      // Front section
-      const frontGeometry = new THREE.ConeGeometry(0.15, 0.3, 8);
-      const frontMaterial = new THREE.MeshPhongMaterial({ 
-        color: 0xff3b2e,
+      // Cabin/passenger area
+      const cabinGeometry = new THREE.BoxGeometry(0.8, 0.3, 0.5);
+      const cabinMaterial = new THREE.MeshPhongMaterial({ 
+        color: 0xff4520,
+        shininess: 120,
         emissive: 0xff6b35,
-        emissiveIntensity: 0.05 
+        emissiveIntensity: 0.03
       });
-      const frontMesh = new THREE.Mesh(frontGeometry, frontMaterial);
-      frontMesh.rotation.z = Math.PI / 2;
-      frontMesh.position.x = 0.55;
-      geometry.add(frontMesh);
+      const cabinMesh = new THREE.Mesh(cabinGeometry, cabinMaterial);
+      cabinMesh.position.y = 0.25;
+      group.add(cabinMesh);
+
+      // Front grille
+      const grilleGeometry = new THREE.BoxGeometry(0.1, 0.25, 0.4);
+      const grilleMaterial = new THREE.MeshPhongMaterial({ 
+        color: 0x333333,
+        shininess: 80
+      });
+      const grilleMesh = new THREE.Mesh(grilleGeometry, grilleMaterial);
+      grilleMesh.position.x = 0.65;
+      group.add(grilleMesh);
+
+      // Wheels
+      const wheelGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.1, 12);
+      const wheelMaterial = new THREE.MeshPhongMaterial({ 
+        color: 0x222222,
+        shininess: 50
+      });
+      
+      // Create 4 wheels
+      const wheelPositions = [
+        [-0.4, -0.25, 0.35],
+        [-0.4, -0.25, -0.35],
+        [0.4, -0.25, 0.35],
+        [0.4, -0.25, -0.35]
+      ];
+      
+      wheelPositions.forEach(pos => {
+        const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+        wheel.position.set(pos[0], pos[1], pos[2]);
+        wheel.rotation.z = Math.PI / 2;
+        group.add(wheel);
+      });
 
       // Windows
-      const windowGeometry = new THREE.PlaneGeometry(0.4, 0.15);
+      const windowGeometry = new THREE.PlaneGeometry(0.6, 0.2);
       const windowMaterial = new THREE.MeshPhongMaterial({ 
         color: 0x87ceeb,
         transparent: true,
-        opacity: 0.8,
+        opacity: 0.7,
         emissive: 0x4169e1,
-        emissiveIntensity: 0.2 
+        emissiveIntensity: 0.1
       });
-      const windowMesh = new THREE.Mesh(windowGeometry, windowMaterial);
-      windowMesh.position.set(0, 0, 0.21);
-      geometry.add(windowMesh);
+      
+      // Front and back windows
+      const frontWindow = new THREE.Mesh(windowGeometry, windowMaterial);
+      frontWindow.position.set(0.4, 0.3, 0);
+      frontWindow.rotation.y = Math.PI / 2;
+      group.add(frontWindow);
 
-      return geometry;
+      const backWindow = new THREE.Mesh(windowGeometry, windowMaterial);
+      backWindow.position.set(-0.4, 0.3, 0);
+      backWindow.rotation.y = -Math.PI / 2;
+      group.add(backWindow);
+
+      // Side windows
+      const sideWindow1 = new THREE.Mesh(windowGeometry, windowMaterial);
+      sideWindow1.position.set(0, 0.3, 0.31);
+      group.add(sideWindow1);
+
+      const sideWindow2 = new THREE.Mesh(windowGeometry, windowMaterial);
+      sideWindow2.position.set(0, 0.3, -0.31);
+      sideWindow2.rotation.y = Math.PI;
+      group.add(sideWindow2);
+
+      // Headlights
+      const headlightGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+      const headlightMaterial = new THREE.MeshPhongMaterial({ 
+        color: 0xffffaa,
+        emissive: 0xffff88,
+        emissiveIntensity: 0.3
+      });
+      
+      const headlight1 = new THREE.Mesh(headlightGeometry, headlightMaterial);
+      headlight1.position.set(0.6, 0, 0.2);
+      group.add(headlight1);
+      
+      const headlight2 = new THREE.Mesh(headlightGeometry, headlightMaterial);
+      headlight2.position.set(0.6, 0, -0.2);
+      group.add(headlight2);
+
+      return group;
     };
 
-    // Initialize nodes
-    const nodeCount = 12;
+    // Initialize more nodes with clustering
+    const nodeCount = 25;
     const nodes: ShuttleNode[] = [];
     
-    for (let i = 0; i < nodeCount; i++) {
-      const angle = (i / nodeCount) * Math.PI * 2;
-      const radius = 3 + Math.random() * 2;
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      const z = (Math.random() - 0.5) * 2;
+    // Create clustered formations
+    const clusters = [
+      { center: new THREE.Vector3(-4, 2, 0), count: 8 },
+      { center: new THREE.Vector3(4, -1, 1), count: 7 },
+      { center: new THREE.Vector3(0, 3, -2), count: 6 },
+      { center: new THREE.Vector3(-2, -3, 1), count: 4 }
+    ];
 
-      const position = new THREE.Vector3(x, y, z);
-      const shuttle = createShuttleGeometry();
-      shuttle.position.copy(position);
-      
-      // Add random rotation
-      shuttle.rotation.x = Math.random() * Math.PI * 2;
-      shuttle.rotation.y = Math.random() * Math.PI * 2;
-      shuttle.rotation.z = Math.random() * Math.PI * 2;
-      
-      scene.add(shuttle);
+    let nodeId = 0;
+    clusters.forEach(cluster => {
+      for (let i = 0; i < cluster.count; i++) {
+        const angle = (i / cluster.count) * Math.PI * 2;
+        const radius = 0.5 + Math.random() * 1.5;
+        const x = cluster.center.x + Math.cos(angle) * radius;
+        const y = cluster.center.y + Math.sin(angle) * radius;
+        const z = cluster.center.z + (Math.random() - 0.5) * 1.5;
 
-      nodes.push({
-        id: i,
-        position: position.clone(),
-        mesh: shuttle as THREE.Mesh,
-        targetPosition: position.clone(),
-        isDragging: false
-      });
-    }
+        const position = new THREE.Vector3(x, y, z);
+        const shuttle = createShuttleGeometry();
+        shuttle.position.copy(position);
+        
+        // Random realistic orientations
+        shuttle.rotation.x = (Math.random() - 0.5) * 0.3;
+        shuttle.rotation.y = Math.random() * Math.PI * 2;
+        shuttle.rotation.z = (Math.random() - 0.5) * 0.2;
+        
+        // Slight random scale for variety
+        const scale = 0.8 + Math.random() * 0.4;
+        shuttle.scale.setScalar(scale);
+        
+        scene.add(shuttle);
+
+        nodes.push({
+          id: nodeId++,
+          position: position.clone(),
+          mesh: shuttle as THREE.Mesh,
+          targetPosition: position.clone(),
+          isDragging: false
+        });
+      }
+    });
 
     shuttleNodesRef.current = nodes;
 
-    // Create connections
+    // Create more connections for clustered appearance
     const connections: Connection[] = [];
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
-        if (Math.random() > 0.7) { // 30% chance of connection
+        const distance = nodes[i].position.distanceTo(nodes[j].position);
+        if (distance < 3.0 || Math.random() > 0.85) { // Connect nearby nodes or random long connections
           const points = [nodes[i].position, nodes[j].position];
           const geometry = new THREE.BufferGeometry().setFromPoints(points);
           const material = new THREE.LineBasicMaterial({ 
             color: 0xff6b35,
             transparent: true,
-            opacity: 0.3,
-            linewidth: 2
+            opacity: 0.4,
+            linewidth: 1.5
           });
           const line = new THREE.Line(geometry, material);
           scene.add(line);

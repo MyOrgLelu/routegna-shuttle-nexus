@@ -12,31 +12,33 @@ const Index = () => {
       <ShuttleNetwork3D />
 
       {/* Content Overlay */}
-      <div className="content-overlay min-h-screen flex items-center justify-center">
-        <div className="container mx-auto px-6 pt-20">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Main Headline */}
-            <h1 className="hero-headline mb-6 animate-fade-in">
-              An Enterprise Cloud Fleet Management Platform
+      <div className="content-overlay min-h-screen flex items-center">
+        <div className="container mx-auto px-8 pt-24">
+          <div className="max-w-4xl">
+            {/* Main Headline - Left Aligned */}
+            <h1 className="hero-headline mb-8 animate-fade-in">
+              Enterprise Fleet<br />
+              <span className="block">Management</span>
+              <span className="block text-6xl">Revolution</span>
             </h1>
             
             {/* Subheading */}
-            <p className="hero-subtext mb-8 mx-auto animate-fade-in" style={{ animationDelay: "0.2s" }}>
-              with Adaptive Routing, Dynamic Passenger Pooling & Predictive Forecasting
+            <p className="hero-subtext mb-12 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+              Adaptive Routing • Dynamic Passenger Pooling • Predictive Forecasting
             </p>
 
             {/* Call-to-Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
-              <Button variant="hero" size="hero" className="w-full sm:w-auto">
-                Login
+            <div className="flex flex-col sm:flex-row gap-6 mb-16 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+              <Button variant="hero" size="hero">
+                Access Platform
               </Button>
-              <Button variant="outline" size="hero" className="w-full sm:w-auto">
-                Learn More
+              <Button variant="outline" size="hero">
+                Discover More
               </Button>
             </div>
 
             {/* Enterprise Features */}
-            <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in" style={{ animationDelay: "0.6s" }}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in" style={{ animationDelay: "0.7s" }}>
               <div className="bg-card/50 backdrop-blur-sm border border-card-border rounded-xl p-6 shadow-soft hover:shadow-brand transition-all duration-300">
                 <div className="w-12 h-12 bg-brand-gradient rounded-lg mb-4 mx-auto flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
