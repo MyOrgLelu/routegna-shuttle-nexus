@@ -1,7 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* Routegna Enterprise Design System */
 
@@ -10,8 +10,12 @@
     /* Corporate Background System with Reddish Glow */
     --background: 0 0% 100%;
     --background-subtle: 220 20% 98%;
-    --background-gradient: radial-gradient(ellipse at center, hsl(14 30% 96%) 0%, hsl(8 20% 97%) 30%, hsl(0 0% 100%) 70%);
-    --background-glow: radial-gradient(circle at 50% 40%, hsl(14 60% 85% / 0.3) 0%, hsl(8 40% 90% / 0.2) 40%, transparent 70%);
+    --background-gradient: radial-gradient(ellipse at center, hsl(14 30% 96%) 0%, hsl(8 25% 97%) 30%, hsl(0 0% 100%) 70%);
+    /* Subtle multiple red spray glows */
+    --background-glow: 
+      radial-gradient(40rem 30rem at 60% 35%, hsl(8 90% 92% / 0.45) 0%, transparent 60%),
+      radial-gradient(28rem 22rem at 30% 70%, hsl(14 85% 90% / 0.35) 0%, transparent 60%),
+      radial-gradient(22rem 18rem at 80% 80%, hsl(10 80% 88% / 0.25) 0%, transparent 65%);
     --foreground: 220 25% 15%;
     --foreground-muted: 220 15% 45%;
 
@@ -52,7 +56,8 @@
     --shadow-glow: 0 0 40px hsl(14 100% 60% / 0.4);
 
     /* Typography Scale */
-    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-heading: 'Manrope', var(--font-family);
     --letter-spacing-brand: 0.025em;
 
     /* Animation System */
@@ -62,6 +67,48 @@
     --radius: 0.75rem;
   }
 
+}
+
+/* Dark mode token overrides */
+@layer base {
+  .dark {
+    /* Base surfaces */
+    --background: 220 19% 8%;
+    --background-subtle: 220 19% 10%;
+    --foreground: 210 15% 92%;
+    --foreground-muted: 210 10% 70%;
+
+    /* Background gradients and glows tuned for dark */
+    --background-gradient: radial-gradient(ellipse at center, hsl(222 28% 11%) 0%, hsl(222 26% 10%) 30%, hsl(220 17% 8%) 70%);
+    --background-glow:
+      radial-gradient(40rem 30rem at 60% 35%, hsl(8 90% 40% / 0.18) 0%, transparent 60%),
+      radial-gradient(28rem 22rem at 30% 70%, hsl(14 85% 45% / 0.14) 0%, transparent 60%),
+      radial-gradient(22rem 18rem at 80% 80%, hsl(10 80% 42% / 0.12) 0%, transparent 65%);
+
+    /* Cards and UI */
+    --card: 222 20% 12%;
+    --card-foreground: 210 15% 92%;
+    --card-border: 220 14% 18%;
+
+    --secondary: 222 18% 14%;
+    --secondary-foreground: 210 15% 92%;
+    --secondary-hover: 222 18% 18%;
+
+    --muted: 222 18% 14%;
+    --muted-foreground: 215 12% 72%;
+
+    --accent: 222 25% 16%;
+    --accent-foreground: 210 15% 92%;
+
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 14 100% 60%;
+
+    /* Shadow tuning for dark */
+    --shadow-soft: 0 8px 30px hsl(0 0% 0% / 0.35);
+    --shadow-brand: 0 12px 40px hsl(14 100% 60% / 0.25);
+    --shadow-glow: 0 0 60px hsl(14 100% 60% / 0.5);
+  }
 }
 
 @layer base {
@@ -86,6 +133,20 @@
     right: 0;
     bottom: 0;
     background: var(--background-glow);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Additional subtle spray layer */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+  background: radial-gradient(50rem 40rem at 10% 15%, hsl(14 90% 90% / 0.18), transparent 60%),
+        radial-gradient(36rem 28rem at 85% 25%, hsl(8 90% 88% / 0.14), transparent 65%),
+        radial-gradient(30rem 24rem at 15% 85%, hsl(10 85% 92% / 0.12), transparent 60%),
+        radial-gradient(26rem 22rem at 95% 75%, hsl(12 80% 90% / 0.1), transparent 60%);
+    mix-blend-mode: screen;
     pointer-events: none;
     z-index: 0;
   }
@@ -141,40 +202,28 @@
   }
 
   .btn-outline {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 2px solid;
-    border-image: linear-gradient(135deg, hsl(14 100% 60%), hsl(8 100% 58%)) 1;
-    color: hsl(var(--brand-primary));
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    font-weight: 600;
+    position: relative;
+    border-radius: 1rem; /* ensure smooth corners */
+    font-weight: 700;
     letter-spacing: 0.5px;
     text-transform: uppercase;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .btn-outline::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, hsl(14 100% 60%) 0%, hsl(8 100% 58%) 100%);
-    z-index: -1;
-    transition: opacity 0.4s;
-    opacity: 0;
-  }
-
-  .btn-outline:hover::before {
-    opacity: 1;
+    color: hsl(var(--brand-primary));
+    transition: var(--transition-smooth);
+    /* Gradient stroke technique with proper radius */
+    background: 
+      linear-gradient(white, white) padding-box,
+      linear-gradient(135deg, hsl(14 100% 60%), hsl(8 100% 58%)) border-box;
+    border: 2px solid transparent;
+    backdrop-filter: blur(8px);
   }
 
   .btn-outline:hover {
-    color: white;
     transform: translateY(-3px) scale(1.02);
     box-shadow: 0 8px 25px hsl(14 100% 60% / 0.3);
+    color: white;
+    background:
+      linear-gradient(135deg, hsl(14 100% 60%), hsl(8 100% 58%)) padding-box,
+      linear-gradient(135deg, hsl(14 100% 60%), hsl(8 100% 58%)) border-box;
   }
 
   /* 3D Scene Container */
@@ -200,20 +249,21 @@
 
   /* Creative Typography */
   .hero-headline {
-    font-size: clamp(3rem, 7vw, 5.5rem);
+  font-size: clamp(2.25rem, 5.5vw, 4rem);
     font-weight: 800;
     line-height: 0.95;
     letter-spacing: -0.03em;
+    font-family: var(--font-heading);
     color: hsl(var(--foreground));
-    background: linear-gradient(135deg, hsl(220 25% 15%) 0%, hsl(14 100% 45%) 50%, hsl(8 100% 50%) 100%);
+    background: linear-gradient(100deg, hsl(220 25% 15%) 0%, hsl(14 100% 48%) 40%, hsl(8 100% 50%) 85%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-shadow: 0 4px 12px hsl(14 100% 60% / 0.3);
+    text-shadow: 0 4px 14px hsl(14 100% 60% / 0.28);
   }
 
   .hero-subtext {
-    font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  font-size: clamp(0.95rem, 1.8vw, 1.25rem);
     font-weight: 500;
     line-height: 1.4;
     color: hsl(var(--foreground-muted));
