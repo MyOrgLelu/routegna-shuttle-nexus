@@ -93,116 +93,232 @@ export const ShuttleNetwork3D = () => {
       return seed / 0x100000000; // [0,1)
     };
 
-    // Create detailed shuttle geometry instead of loading OBJ
+    // Create highly detailed curved shuttle geometry
     const createDetailedShuttle = () => {
       const shuttleGroup = new THREE.Group();
 
-      // Main body (elongated for shuttle look)
-      const bodyGeometry = new THREE.BoxGeometry(2.0, 0.6, 0.8);
+      // Create curved body using multiple segments for smooth curves
+      const bodyShape = new THREE.Shape();
+      bodyShape.moveTo(-1.0, 0);
+      bodyShape.quadraticCurveTo(-1.2, 0.1, -1.1, 0.3);
+      bodyShape.quadraticCurveTo(-1.0, 0.6, -0.8, 0.7);
+      bodyShape.lineTo(0.8, 0.7);
+      bodyShape.quadraticCurveTo(1.0, 0.6, 1.1, 0.3);
+      bodyShape.quadraticCurveTo(1.2, 0.1, 1.0, 0);
+      bodyShape.lineTo(-1.0, 0);
+
+      const extrudeSettings = {
+        depth: 0.8,
+        bevelEnabled: true,
+        bevelSegments: 8,
+        steps: 2,
+        bevelSize: 0.05,
+        bevelThickness: 0.02
+      };
+
+      const bodyGeometry = new THREE.ExtrudeGeometry(bodyShape, extrudeSettings);
       const bodyMaterial = new THREE.MeshStandardMaterial({
         color: 0xff6b35,
+        metalness: 0.8,
+        roughness: 0.2
+      });
+      const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+      body.position.set(0, 0.3, -0.4);
+      shuttleGroup.add(body);
+
+      // Curved roof using LatheGeometry for smooth dome
+      const roofPoints = [];
+      for (let i = 0; i <= 10; i++) {
+        const angle = (i / 10) * Math.PI * 0.5;
+        roofPoints.push(new THREE.Vector2(Math.sin(angle) * 0.9, Math.cos(angle) * 0.3 + 0.4));
+      }
+      const roofGeometry = new THREE.LatheGeometry(roofPoints, 16);
+      const roofMaterial = new THREE.MeshStandardMaterial({
+        color: 0xff4520,
         metalness: 0.7,
         roughness: 0.3
       });
-      const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-      body.position.y = 0.3;
-      shuttleGroup.add(body);
+      const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+      roof.position.y = 0.5;
+      roof.scale.set(1, 1, 1.2);
+      shuttleGroup.add(roof);
 
-      // Windshield
-      const windshieldGeometry = new THREE.BoxGeometry(1.8, 0.4, 0.02);
+      // Curved windshield using CylinderGeometry bent
+      const windshieldGeometry = new THREE.CylinderGeometry(0.85, 0.85, 0.02, 16, 1, false, 0, Math.PI);
       const windshieldMaterial = new THREE.MeshStandardMaterial({
         color: 0x87ceeb,
         transparent: true,
-        opacity: 0.7,
+        opacity: 0.6,
         metalness: 0.1,
         roughness: 0.1
       });
       const windshield = new THREE.Mesh(windshieldGeometry, windshieldMaterial);
-      windshield.position.set(0, 0.5, 0.41);
+      windshield.position.set(0, 0.65, 0.2);
+      windshield.rotation.z = Math.PI;
       shuttleGroup.add(windshield);
 
-      // Side windows
-      const sideWindowGeometry = new THREE.BoxGeometry(0.02, 0.3, 0.6);
+      // Side windows with curves
+      const sideWindowShape = new THREE.Shape();
+      sideWindowShape.moveTo(0, 0);
+      sideWindowShape.quadraticCurveTo(0.3, 0.05, 0.6, 0);
+      sideWindowShape.lineTo(0.6, 0.3);
+      sideWindowShape.quadraticCurveTo(0.3, 0.35, 0, 0.3);
+      sideWindowShape.lineTo(0, 0);
+
+      const sideWindowGeometry = new THREE.ExtrudeGeometry(sideWindowShape, { depth: 0.02, bevelEnabled: false });
+      
       const leftWindow = new THREE.Mesh(sideWindowGeometry, windshieldMaterial);
-      leftWindow.position.set(1.01, 0.45, 0);
+      leftWindow.position.set(0.9, 0.5, -0.15);
+      leftWindow.rotation.y = Math.PI / 2;
       shuttleGroup.add(leftWindow);
       
       const rightWindow = new THREE.Mesh(sideWindowGeometry, windshieldMaterial);
-      rightWindow.position.set(-1.01, 0.45, 0);
+      rightWindow.position.set(-0.9, 0.5, -0.15);
+      rightWindow.rotation.y = -Math.PI / 2;
       shuttleGroup.add(rightWindow);
 
-      // Wheels
-      const wheelGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.1, 8);
-      const wheelMaterial = new THREE.MeshStandardMaterial({
-        color: 0x2a2a2a,
-        metalness: 0.8,
-        roughness: 0.4
+      // Detailed wheels with rims and tires
+      const createWheel = () => {
+        const wheelGroup = new THREE.Group();
+        
+        // Tire (torus for realistic shape)
+        const tireGeometry = new THREE.TorusGeometry(0.18, 0.08, 8, 16);
+        const tireMaterial = new THREE.MeshStandardMaterial({
+          color: 0x1a1a1a,
+          roughness: 0.9,
+          metalness: 0.1
+        });
+        const tire = new THREE.Mesh(tireGeometry, tireMaterial);
+        tire.rotation.x = Math.PI / 2;
+        wheelGroup.add(tire);
+
+        // Rim (cylinder with metallic material)
+        const rimGeometry = new THREE.CylinderGeometry(0.14, 0.14, 0.08, 12);
+        const rimMaterial = new THREE.MeshStandardMaterial({
+          color: 0x888888,
+          metalness: 0.9,
+          roughness: 0.1
+        });
+        const rim = new THREE.Mesh(rimGeometry, rimMaterial);
+        rim.rotation.z = Math.PI / 2;
+        wheelGroup.add(rim);
+
+        // Spokes
+        for (let i = 0; i < 5; i++) {
+          const spokeGeometry = new THREE.BoxGeometry(0.02, 0.12, 0.01);
+          const spoke = new THREE.Mesh(spokeGeometry, rimMaterial);
+          spoke.rotation.z = (i / 5) * Math.PI * 2;
+          spoke.position.y = 0.06;
+          wheelGroup.add(spoke);
+        }
+
+        return wheelGroup;
+      };
+
+      // Position wheels
+      const wheels = [
+        { pos: [0.7, 0.18, -0.6], name: 'frontLeft' },
+        { pos: [0.7, 0.18, 0.2], name: 'frontRight' },
+        { pos: [-0.7, 0.18, -0.6], name: 'rearLeft' },
+        { pos: [-0.7, 0.18, 0.2], name: 'rearRight' }
+      ];
+
+      wheels.forEach(wheelData => {
+        const wheel = createWheel();
+        wheel.position.set(...wheelData.pos);
+        shuttleGroup.add(wheel);
       });
 
-      // Front wheels
-      const frontLeftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-      frontLeftWheel.position.set(0.6, 0.15, -0.5);
-      frontLeftWheel.rotation.z = Math.PI / 2;
-      shuttleGroup.add(frontLeftWheel);
-
-      const frontRightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-      frontRightWheel.position.set(0.6, 0.15, 0.5);
-      frontRightWheel.rotation.z = Math.PI / 2;
-      shuttleGroup.add(frontRightWheel);
-
-      // Rear wheels
-      const rearLeftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-      rearLeftWheel.position.set(-0.6, 0.15, -0.5);
-      rearLeftWheel.rotation.z = Math.PI / 2;
-      shuttleGroup.add(rearLeftWheel);
-
-      const rearRightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-      rearRightWheel.position.set(-0.6, 0.15, 0.5);
-      rearRightWheel.rotation.z = Math.PI / 2;
-      shuttleGroup.add(rearRightWheel);
-
-      // Headlights
-      const headlightGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+      // Curved headlights using SphereGeometry with emissive material
+      const headlightGeometry = new THREE.SphereGeometry(0.12, 12, 8, 0, Math.PI);
       const headlightMaterial = new THREE.MeshStandardMaterial({
         color: 0xffffff,
-        emissive: 0xffffff,
-        emissiveIntensity: 0.3
+        emissive: 0xffffaa,
+        emissiveIntensity: 0.4,
+        transparent: true,
+        opacity: 0.9
       });
 
       const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
-      leftHeadlight.position.set(1.0, 0.35, -0.25);
+      leftHeadlight.position.set(1.05, 0.4, -0.3);
+      leftHeadlight.rotation.y = -Math.PI / 2;
       shuttleGroup.add(leftHeadlight);
 
       const rightHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
-      rightHeadlight.position.set(1.0, 0.35, 0.25);
+      rightHeadlight.position.set(1.05, 0.4, 0.1);
+      rightHeadlight.rotation.y = -Math.PI / 2;
       shuttleGroup.add(rightHeadlight);
 
-      // Door handles
-      const handleGeometry = new THREE.BoxGeometry(0.05, 0.02, 0.15);
+      // Curved door handles
+      const handleCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0.02, 0.01, 0),
+        new THREE.Vector3(0.04, 0, 0),
+        new THREE.Vector3(0.06, -0.01, 0)
+      ]);
+
+      const handleGeometry = new THREE.TubeGeometry(handleCurve, 8, 0.008, 6, false);
       const handleMaterial = new THREE.MeshStandardMaterial({
         color: 0x444444,
-        metalness: 0.9,
-        roughness: 0.2
+        metalness: 0.95,
+        roughness: 0.05
       });
 
       const leftHandle = new THREE.Mesh(handleGeometry, handleMaterial);
-      leftHandle.position.set(0.51, 0.4, -0.45);
+      leftHandle.position.set(0.92, 0.4, -0.4);
+      leftHandle.rotation.z = Math.PI / 2;
       shuttleGroup.add(leftHandle);
 
       const rightHandle = new THREE.Mesh(handleGeometry, handleMaterial);
-      rightHandle.position.set(0.51, 0.4, 0.45);
+      rightHandle.position.set(0.92, 0.4, 0.0);
+      rightHandle.rotation.z = Math.PI / 2;
       shuttleGroup.add(rightHandle);
 
-      // Roof rack
-      const rackGeometry = new THREE.BoxGeometry(1.8, 0.05, 0.6);
-      const rackMaterial = new THREE.MeshStandardMaterial({
-        color: 0x333333,
-        metalness: 0.8,
+      // Curved grille using multiple thin cylinders
+      for (let i = 0; i < 8; i++) {
+        const grilleGeometry = new THREE.CylinderGeometry(0.005, 0.005, 0.3, 6);
+        const grilleMaterial = new THREE.MeshStandardMaterial({
+          color: 0x333333,
+          metalness: 0.8,
+          roughness: 0.2
+        });
+        const grillePiece = new THREE.Mesh(grilleGeometry, grilleMaterial);
+        grillePiece.position.set(1.02, 0.25 + i * 0.03, -0.1);
+        grillePiece.rotation.z = Math.PI / 2;
+        shuttleGroup.add(grillePiece);
+      }
+
+      // Side mirrors with curved stalks
+      const mirrorStalkCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0.05, 0.02, 0.03),
+        new THREE.Vector3(0.08, 0.01, 0.05)
+      ]);
+
+      const stalkGeometry = new THREE.TubeGeometry(mirrorStalkCurve, 8, 0.01, 6, false);
+      const stalkMaterial = new THREE.MeshStandardMaterial({
+        color: 0x222222,
+        metalness: 0.7,
         roughness: 0.3
       });
-      const rack = new THREE.Mesh(rackGeometry, rackMaterial);
-      rack.position.y = 0.625;
-      shuttleGroup.add(rack);
+
+      [{ side: 'left', z: -0.5 }, { side: 'right', z: 0.3 }].forEach(mirror => {
+        const stalk = new THREE.Mesh(stalkGeometry, stalkMaterial);
+        stalk.position.set(0.85, 0.65, mirror.z);
+        stalk.rotation.y = mirror.side === 'left' ? -0.3 : 0.3;
+        shuttleGroup.add(stalk);
+
+        // Mirror glass
+        const mirrorGeometry = new THREE.PlaneGeometry(0.08, 0.06);
+        const mirrorMaterial = new THREE.MeshStandardMaterial({
+          color: 0x87ceeb,
+          metalness: 0.9,
+          roughness: 0.1
+        });
+        const mirrorGlass = new THREE.Mesh(mirrorGeometry, mirrorMaterial);
+        mirrorGlass.position.set(0.93, 0.66, mirror.z + (mirror.side === 'left' ? -0.05 : 0.05));
+        shuttleGroup.add(mirrorGlass);
+      });
 
       return shuttleGroup;
     };
