@@ -14,22 +14,22 @@ const Index = () => {
       {/* Content Overlay */}
       <div className="content-overlay min-h-screen flex items-center">
         <div className="container mx-auto px-4 md:px-8 pt-20 md:pt-24">
-          {/* Right-aligned, centered content block */}
-          <div className="max-w-4xl ml-auto text-right">
-            {/* Main Headline - Right Aligned */}
-            <h1 className="hero-headline mb-6 md:mb-8 animate-fade-in text-center md:text-right">
-              Enterprise Fleet<br />
-              <span className="block">Management</span>
-              <span className="block text-4xl md:text-6xl">Revolution</span>
+          {/* Left-aligned content block */}
+          <div className="max-w-4xl text-left">
+            {/* Main Headline - Left Aligned */}
+            <h1 className="hero-headline mb-6 md:mb-8 animate-fade-in text-left">
+              <span className="text-foreground">Enterprise Fleet</span><br />
+              <span className="block text-brand-primary">Management</span>
+              <span className="block text-4xl md:text-6xl bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent font-bold">Revolution</span>
             </h1>
             
             {/* Subheading */}
-            <p className="hero-subtext mb-8 md:mb-12 animate-fade-in ml-auto text-center md:text-right" style={{ animationDelay: "0.3s" }}>
+            <p className="hero-subtext mb-8 md:mb-12 animate-fade-in text-left" style={{ animationDelay: "0.3s" }}>
               Adaptive Routing • Dynamic Passenger Pooling • Predictive Forecasting
             </p>
 
             {/* Call-to-Action Buttons */}
-            <div className="flex flex-col sm:flex-row sm:justify-center md:justify-end gap-3 md:gap-4 mb-10 md:mb-14 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+            <div className="flex flex-col sm:flex-row justify-start gap-3 md:gap-4 mb-10 md:mb-14 animate-fade-in" style={{ animationDelay: "0.5s" }}>
               <Button variant="default" size="lg">
                 Access Platform
               </Button>

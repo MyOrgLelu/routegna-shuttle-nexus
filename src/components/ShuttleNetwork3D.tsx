@@ -34,8 +34,25 @@ export const ShuttleNetwork3D = () => {
 
     // Scene setup
     const scene = new THREE.Scene();
-  // Subtle reddish fog to blend with page background glow
-  scene.fog = new THREE.Fog(new THREE.Color(0xfff1ec), 28, 80);
+    // Subtle reddish fog to blend with page background glow
+    scene.fog = new THREE.Fog(new THREE.Color(0xfff1ec), 28, 80);
+
+    // Add the map background image on the left side
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load('/lovable-uploads/746ec594-24f0-4b40-910e-201e3c103ecd.png', (texture) => {
+      const aspectRatio = texture.image.width / texture.image.height;
+      const planeGeometry = new THREE.PlaneGeometry(12, 12 / aspectRatio);
+      const planeMaterial = new THREE.MeshBasicMaterial({ 
+        map: texture, 
+        transparent: true, 
+        opacity: 0.15,
+        side: THREE.DoubleSide
+      });
+      const mapPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+      mapPlane.position.set(-8, 0, -8);
+      mapPlane.rotation.x = 0;
+      scene.add(mapPlane);
+    });
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     
@@ -76,35 +93,161 @@ export const ShuttleNetwork3D = () => {
       return seed / 0x100000000; // [0,1)
     };
 
-  // Load high-fidelity OBJ model and then spawn clusters from duplicates
-  const loader = new OBJLoader();
+    // Create detailed shuttle geometry instead of loading OBJ
+    const createDetailedShuttle = () => {
+      const shuttleGroup = new THREE.Group();
 
-    const spawnFallbackClusters = () => {
-      // simple fallback: boxes with similar spacing so UI still shows clusters
+      // Main body (elongated for shuttle look)
+      const bodyGeometry = new THREE.BoxGeometry(2.0, 0.6, 0.8);
+      const bodyMaterial = new THREE.MeshStandardMaterial({
+        color: 0xff6b35,
+        metalness: 0.7,
+        roughness: 0.3
+      });
+      const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+      body.position.y = 0.3;
+      shuttleGroup.add(body);
+
+      // Windshield
+      const windshieldGeometry = new THREE.BoxGeometry(1.8, 0.4, 0.02);
+      const windshieldMaterial = new THREE.MeshStandardMaterial({
+        color: 0x87ceeb,
+        transparent: true,
+        opacity: 0.7,
+        metalness: 0.1,
+        roughness: 0.1
+      });
+      const windshield = new THREE.Mesh(windshieldGeometry, windshieldMaterial);
+      windshield.position.set(0, 0.5, 0.41);
+      shuttleGroup.add(windshield);
+
+      // Side windows
+      const sideWindowGeometry = new THREE.BoxGeometry(0.02, 0.3, 0.6);
+      const leftWindow = new THREE.Mesh(sideWindowGeometry, windshieldMaterial);
+      leftWindow.position.set(1.01, 0.45, 0);
+      shuttleGroup.add(leftWindow);
+      
+      const rightWindow = new THREE.Mesh(sideWindowGeometry, windshieldMaterial);
+      rightWindow.position.set(-1.01, 0.45, 0);
+      shuttleGroup.add(rightWindow);
+
+      // Wheels
+      const wheelGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.1, 8);
+      const wheelMaterial = new THREE.MeshStandardMaterial({
+        color: 0x2a2a2a,
+        metalness: 0.8,
+        roughness: 0.4
+      });
+
+      // Front wheels
+      const frontLeftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+      frontLeftWheel.position.set(0.6, 0.15, -0.5);
+      frontLeftWheel.rotation.z = Math.PI / 2;
+      shuttleGroup.add(frontLeftWheel);
+
+      const frontRightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+      frontRightWheel.position.set(0.6, 0.15, 0.5);
+      frontRightWheel.rotation.z = Math.PI / 2;
+      shuttleGroup.add(frontRightWheel);
+
+      // Rear wheels
+      const rearLeftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+      rearLeftWheel.position.set(-0.6, 0.15, -0.5);
+      rearLeftWheel.rotation.z = Math.PI / 2;
+      shuttleGroup.add(rearLeftWheel);
+
+      const rearRightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+      rearRightWheel.position.set(-0.6, 0.15, 0.5);
+      rearRightWheel.rotation.z = Math.PI / 2;
+      shuttleGroup.add(rearRightWheel);
+
+      // Headlights
+      const headlightGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+      const headlightMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        emissive: 0xffffff,
+        emissiveIntensity: 0.3
+      });
+
+      const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+      leftHeadlight.position.set(1.0, 0.35, -0.25);
+      shuttleGroup.add(leftHeadlight);
+
+      const rightHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+      rightHeadlight.position.set(1.0, 0.35, 0.25);
+      shuttleGroup.add(rightHeadlight);
+
+      // Door handles
+      const handleGeometry = new THREE.BoxGeometry(0.05, 0.02, 0.15);
+      const handleMaterial = new THREE.MeshStandardMaterial({
+        color: 0x444444,
+        metalness: 0.9,
+        roughness: 0.2
+      });
+
+      const leftHandle = new THREE.Mesh(handleGeometry, handleMaterial);
+      leftHandle.position.set(0.51, 0.4, -0.45);
+      shuttleGroup.add(leftHandle);
+
+      const rightHandle = new THREE.Mesh(handleGeometry, handleMaterial);
+      rightHandle.position.set(0.51, 0.4, 0.45);
+      shuttleGroup.add(rightHandle);
+
+      // Roof rack
+      const rackGeometry = new THREE.BoxGeometry(1.8, 0.05, 0.6);
+      const rackMaterial = new THREE.MeshStandardMaterial({
+        color: 0x333333,
+        metalness: 0.8,
+        roughness: 0.3
+      });
+      const rack = new THREE.Mesh(rackGeometry, rackMaterial);
+      rack.position.y = 0.625;
+      shuttleGroup.add(rack);
+
+      return shuttleGroup;
+    };
+
+    const spawnDetailedClusters = () => {
       const nodes: ShuttleNode[] = [];
-      // Smaller number of vehicles for clarity; larger size
+      // More vehicles in tighter clusters for city-like density
       const clusters = [
-        { center: new THREE.Vector3(-8, 2, 0), count: 3 },
-        { center: new THREE.Vector3(-4, -1, 1), count: 2 },
-        { center: new THREE.Vector3(-6, 3, -2), count: 2 },
-        { center: new THREE.Vector3(-10, -3, 1), count: 3 },
+        { center: new THREE.Vector3(-12, 2, 0), count: 8 },
+        { center: new THREE.Vector3(-8, -1, 1), count: 6 },
+        { center: new THREE.Vector3(-10, 4, -2), count: 5 },
+        { center: new THREE.Vector3(-14, -2, 1), count: 7 },
+        { center: new THREE.Vector3(-6, 1, 2), count: 4 },
       ];
-      const material = new THREE.MeshStandardMaterial({ color: 0xff6b35, metalness: 0.6, roughness: 0.25 });
       let nodeId = 0;
       clusters.forEach((cluster) => {
         for (let i = 0; i < cluster.count; i++) {
           const angle = (i / cluster.count) * Math.PI * 2;
-          const radius = 1.2 + rand() * 2.0;
-          const x = cluster.center.x + Math.cos(angle) * radius + (rand() - 0.5) * 0.6;
-          const y = cluster.center.y + Math.sin(angle) * radius + (rand() - 0.5) * 0.6;
-          const z = cluster.center.z + (rand() - 0.5) * 1.6;
-          const box = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.45, 0.7), material.clone());
-          box.position.set(x, y, z);
-          box.rotation.set((rand() - 0.5) * 0.2, rand() * Math.PI * 2, (rand() - 0.5) * 0.1);
-          const s = 1.6 + rand() * 0.6; // increase fallback box size
-          box.scale.setScalar(s);
-          scene.add(box);
-          nodes.push({ id: nodeId++, position: new THREE.Vector3(x, y, z), mesh: box, targetPosition: new THREE.Vector3(x, y, z), isDragging: false });
+          const radius = 0.8 + rand() * 1.2;
+          const x = cluster.center.x + Math.cos(angle) * radius + (rand() - 0.5) * 0.4;
+          const y = cluster.center.y + Math.sin(angle) * radius + (rand() - 0.5) * 0.4;
+          const z = cluster.center.z + (rand() - 0.5) * 1.2;
+          
+          const shuttle = createDetailedShuttle();
+          
+          // Color variations
+          const hue = 0.03 + rand() * 0.02;
+          const saturation = 0.8 + rand() * 0.2;
+          const lightness = 0.4 + rand() * 0.2;
+          const color = new THREE.Color().setHSL(hue, saturation, lightness);
+          
+          shuttle.traverse((child) => {
+            if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
+              if (child.material.color.r > 0.5) { // Only recolor the main body
+                child.material.color.copy(color);
+              }
+            }
+          });
+          
+          shuttle.position.set(x, y, z);
+          shuttle.rotation.set((rand() - 0.5) * 0.1, rand() * Math.PI * 2, (rand() - 0.5) * 0.05);
+          const s = 0.8 + rand() * 0.4;
+          shuttle.scale.setScalar(s);
+          scene.add(shuttle);
+          nodes.push({ id: nodeId++, position: new THREE.Vector3(x, y, z), mesh: shuttle, targetPosition: new THREE.Vector3(x, y, z), isDragging: false });
         }
       });
       shuttleNodesRef.current = nodes;
@@ -126,222 +269,12 @@ export const ShuttleNetwork3D = () => {
       connectionsRef.current = connections;
     };
 
-    loader.load('/uploads_files_3187834_Panther+3d.obj', (base) => {
-      // Normalize and re-materialize the OBJ root
-      try {
-        // First: collect meshes and remove very large/background pieces that some OBJ exports include
-        const meshes: THREE.Mesh[] = [];
-        base.traverse((obj) => {
-          if ((obj as THREE.Mesh).isMesh) meshes.push(obj as THREE.Mesh);
-        });
-
-        if (meshes.length > 0) {
-          // Compute size of each mesh and average to detect outliers
-          const dims = meshes.map((m) => {
-            const b = new THREE.Box3().setFromObject(m);
-            const s = b.getSize(new THREE.Vector3());
-            return Math.max(s.x || 0, s.y || 0, s.z || 0);
-          });
-          const avg = dims.reduce((a, b) => a + b, 0) / dims.length;
-          const maxAllowed = Math.max(avg * 4, 5); // keep reasonably sized parts; anything much larger is probably background
-
-          meshes.forEach((m, i) => {
-            if (dims[i] > maxAllowed) {
-              // Remove oversized/background mesh
-              if (m.parent) m.parent.remove(m);
-            }
-          });
-        }
-
-        // Re-assign branded material and shadow params for remaining meshes
-        base.traverse((obj) => {
-          const mesh = obj as THREE.Mesh;
-          if ((mesh as THREE.Mesh).isMesh) {
-            mesh.castShadow = false;
-            mesh.receiveShadow = false;
-            // Use a lighter material for better performance
-            mesh.material = new THREE.MeshStandardMaterial({
-              color: 0xff6b35,
-              metalness: 0.6,
-              roughness: 0.35,
-            });
-          }
-        });
-
-        // Compute initial overall bounds so we can detect and remove flat/ground pieces
-        const initialBox = new THREE.Box3().setFromObject(base);
-        const initialSize = new THREE.Vector3();
-        initialBox.getSize(initialSize);
-
-        // Heuristic: remove meshes that are very flat and lie at or below the model's bottom
-        const meshesToCheck: THREE.Mesh[] = [];
-        base.traverse((obj) => {
-          if ((obj as THREE.Mesh).isMesh) meshesToCheck.push(obj as THREE.Mesh);
-        });
-
-        meshesToCheck.forEach((m) => {
-          try {
-            const mb = new THREE.Box3().setFromObject(m);
-            const ms = mb.getSize(new THREE.Vector3());
-            const thickness = ms.y;
-
-            // Basic area metric on X/Z plane
-            const areaXZ = (ms.x || 0) * (ms.z || 0);
-            const modelArea = (initialSize.x || 1) * (initialSize.z || 1);
-
-            // Geometry-based flatness test: check vertex Y variance when available
-            let isFlatByVertices = false;
-            const geo = (m.geometry as THREE.BufferGeometry) || null;
-            if (geo && geo.attributes && geo.attributes.position) {
-              const pos = geo.attributes.position.array as Float32Array;
-              let sum = 0;
-              let sumSq = 0;
-              let count = 0;
-              let minY = Infinity;
-              let maxY = -Infinity;
-              for (let i = 1; i < pos.length; i += 3) {
-                const y = pos[i];
-                sum += y;
-                sumSq += y * y;
-                count++;
-                if (y < minY) minY = y;
-                if (y > maxY) maxY = y;
-              }
-              if (count > 0) {
-                const mean = sum / count;
-                const variance = sumSq / count - mean * mean;
-                const yRange = Math.abs(maxY - minY) || 0;
-                // If vertex variance is extremely small relative to the model height, it's flat
-                if (yRange < Math.max(initialSize.y * 0.06, 0.01) || variance < 1e-5) {
-                  isFlatByVertices = true;
-                }
-              }
-            }
-
-            // If mesh is very thin and covers a large XZ area, or geometry indicates flatness,
-            // and it sits near the model bottom, consider it a ground/plate and remove it.
-            if (
-              (thickness > 0 && thickness < Math.max(initialSize.y * 0.12, 0.02) && areaXZ > modelArea * 0.25) ||
-              (isFlatByVertices && areaXZ > modelArea * 0.15)
-            ) {
-              if (mb.max.y <= initialBox.min.y + initialSize.y * 0.25) {
-                if (m.parent) m.parent.remove(m);
-              }
-            }
-          } catch (err) {
-            // If any test fails, don't block the rest — keep mesh and continue
-            console.warn('Error while testing mesh for flatness:', err);
-          }
-        });
-
-        // Recompute final bounding box after removals
-        const box = new THREE.Box3().setFromObject(base);
-        const size = new THREE.Vector3();
-        box.getSize(size);
-        const target = 2.4; // normalized larger length for a more visible car
-        const s = target / Math.max(size.x || 1, size.y || 1, size.z || 1);
-        base.scale.setScalar(s);
-        const center = box.getCenter(new THREE.Vector3()).multiplyScalar(s);
-        base.position.sub(center);
-
-        // Build clusters using clones
-        const nodes: ShuttleNode[] = [];
-        // Fewer vehicles (cleaner), but larger scale per vehicle
-        const clusters = [
-          { center: new THREE.Vector3(-8, 2, 0), count: 3 },
-          { center: new THREE.Vector3(-4, -1, 1), count: 2 },
-          { center: new THREE.Vector3(-6, 3, -2), count: 2 },
-          { center: new THREE.Vector3(-10, -3, 1), count: 3 },
-        ];
-        let nodeId = 0;
-        clusters.forEach((cluster) => {
-          for (let i = 0; i < cluster.count; i++) {
-            const angle = (i / cluster.count) * Math.PI * 2;
-            const radius = 1.2 + rand() * 2.0;
-            const x = cluster.center.x + Math.cos(angle) * radius + (rand() - 0.5) * 0.6;
-            const y = cluster.center.y + Math.sin(angle) * radius + (rand() - 0.5) * 0.6;
-            const z = cluster.center.z + (rand() - 0.5) * 1.6;
-
-            const r = rand();
-            const kind: 'car' | 'van' | 'bus' = r < 0.35 ? 'car' : r < 0.75 ? 'van' : 'bus';
-            const group = new THREE.Group();
-            const clone = base.clone(true);
-
-            // Color/material variations: gently lerp from brand color
-            clone.traverse((obj) => {
-              const m = obj as THREE.Mesh;
-              if ((m as THREE.Mesh).isMesh) {
-                // Replace material with a brand-tinted physical material to ensure
-                // consistent shading across OBJ imports and avoid complex material merges
-                const baseColor = new THREE.Color(0xff6b35);
-                const tint = new THREE.Color().setHSL(0.03 + rand() * 0.02, 1.0, 0.55);
-                const color = baseColor.lerp(tint, 0.25);
-                m.material = new THREE.MeshStandardMaterial({
-                  color,
-                  metalness: 0.6,
-                  roughness: 0.35,
-                });
-              }
-            });
-
-            group.add(clone);
-            // Scale profile by type, and make everything a bit larger for visibility
-            const sizeBoost = 1.6;
-            if (kind === 'car') group.scale.set(0.8 * sizeBoost, 0.75 * sizeBoost, 0.9 * sizeBoost);
-            else if (kind === 'bus') group.scale.set(1.35 * sizeBoost, 1.1 * sizeBoost, 1.15 * sizeBoost);
-
-            group.position.set(x, y, z);
-            group.rotation.set((rand() - 0.5) * 0.2, rand() * Math.PI * 2, (rand() - 0.5) * 0.1);
-            scene.add(group);
-
-            nodes.push({
-              id: nodeId++,
-              position: new THREE.Vector3(x, y, z),
-              mesh: group,
-              targetPosition: new THREE.Vector3(x, y, z),
-              isDragging: false,
-            });
-          }
-        });
-
-        shuttleNodesRef.current = nodes;
-
-        // Connections
-        const connections: Connection[] = [];
-        for (let i = 0; i < nodes.length; i++) {
-          for (let j = i + 1; j < nodes.length; j++) {
-            const distance = nodes[i].position.distanceTo(nodes[j].position);
-            if (distance < 3.0 || rand() > 0.86) {
-              const points = [nodes[i].position, nodes[j].position];
-              const geometry = new THREE.BufferGeometry().setFromPoints(points);
-              const material = new THREE.LineBasicMaterial({
-                color: 0xff6b35,
-                transparent: true,
-                opacity: 0.35,
-              });
-              const line = new THREE.Line(geometry, material);
-              scene.add(line);
-              connections.push({ from: i, to: j, line });
-            }
-          }
-        }
-        connectionsRef.current = connections;
-      } catch (e) {
-        console.warn('Error processing OBJ, falling back to boxes', e);
-        try {
-          spawnFallbackClusters();
-        } catch (err) {
-          console.error('Fallback cluster spawn failed', err);
-        }
-      }
-    }, undefined, (err) => {
-      console.warn('Failed to load OBJ /uploads_files_3187834_Panther+3d.obj, using fallback boxes for vehicles.', err);
-      try {
-        spawnFallbackClusters();
-      } catch (e) {
-        console.error('Fallback cluster spawn failed', e);
-      }
-    });
+    // Use detailed shuttle models directly
+    try {
+      spawnDetailedClusters();
+    } catch (e) {
+      console.error('Detailed cluster spawn failed', e);
+    }
 
     // Mouse interaction handlers
     const onMouseMove = (event: MouseEvent) => {
