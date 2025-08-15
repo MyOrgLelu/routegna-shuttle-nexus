@@ -320,18 +320,122 @@ export const ShuttleNetwork3D = () => {
         shuttleGroup.add(mirrorGlass);
       });
 
+      // Detailed exhaust pipes with curved design
+      const exhaustCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(-0.1, -0.02, 0),
+        new THREE.Vector3(-0.2, -0.01, 0)
+      ]);
+      
+      const exhaustGeometry = new THREE.TubeGeometry(exhaustCurve, 12, 0.025, 8, false);
+      const exhaustMaterial = new THREE.MeshStandardMaterial({
+        color: 0x444444,
+        metalness: 0.9,
+        roughness: 0.1
+      });
+      
+      // Left exhaust
+      const leftExhaust = new THREE.Mesh(exhaustGeometry, exhaustMaterial);
+      leftExhaust.position.set(-1.1, 0.15, -0.4);
+      shuttleGroup.add(leftExhaust);
+      
+      // Right exhaust
+      const rightExhaust = new THREE.Mesh(exhaustGeometry, exhaustMaterial);
+      rightExhaust.position.set(-1.1, 0.15, 0.1);
+      shuttleGroup.add(rightExhaust);
+
+      // Curved antenna with detailed segments
+      const antennaCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0.02, 0.15, 0.01),
+        new THREE.Vector3(0.05, 0.3, 0.02),
+        new THREE.Vector3(0.03, 0.45, 0.01)
+      ]);
+      
+      const antennaGeometry = new THREE.TubeGeometry(antennaCurve, 16, 0.008, 6, false);
+      const antennaMaterial = new THREE.MeshStandardMaterial({
+        color: 0x333333,
+        metalness: 0.8,
+        roughness: 0.2
+      });
+      
+      const antenna = new THREE.Mesh(antennaGeometry, antennaMaterial);
+      antenna.position.set(0, 0.7, -0.2);
+      shuttleGroup.add(antenna);
+
+      // Curved door panels with detailed frames
+      const doorFrameShape = new THREE.Shape();
+      doorFrameShape.moveTo(0, 0);
+      doorFrameShape.quadraticCurveTo(0.02, 0.1, 0, 0.2);
+      doorFrameShape.quadraticCurveTo(0.05, 0.4, 0, 0.6);
+      doorFrameShape.lineTo(-0.02, 0.6);
+      doorFrameShape.quadraticCurveTo(-0.03, 0.4, -0.02, 0.2);
+      doorFrameShape.quadraticCurveTo(-0.03, 0.1, -0.02, 0);
+      doorFrameShape.lineTo(0, 0);
+
+      const doorFrameGeometry = new THREE.ExtrudeGeometry(doorFrameShape, { 
+        depth: 0.01, 
+        bevelEnabled: true,
+        bevelSize: 0.002,
+        bevelThickness: 0.001
+      });
+      const doorFrameMaterial = new THREE.MeshStandardMaterial({
+        color: 0x222222,
+        metalness: 0.7,
+        roughness: 0.3
+      });
+
+      // Left door frame
+      const leftDoorFrame = new THREE.Mesh(doorFrameGeometry, doorFrameMaterial);
+      leftDoorFrame.position.set(0.88, 0.3, -0.5);
+      leftDoorFrame.rotation.y = Math.PI / 2;
+      shuttleGroup.add(leftDoorFrame);
+
+      // Right door frame  
+      const rightDoorFrame = new THREE.Mesh(doorFrameGeometry, doorFrameMaterial);
+      rightDoorFrame.position.set(0.88, 0.3, 0.2);
+      rightDoorFrame.rotation.y = Math.PI / 2;
+      shuttleGroup.add(rightDoorFrame);
+
+      // Detailed bumpers with curved design
+      const bumperCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.3, 0, 0),
+        new THREE.Vector3(-0.1, 0.02, 0),
+        new THREE.Vector3(0.1, 0.02, 0),
+        new THREE.Vector3(0.3, 0, 0)
+      ]);
+      
+      const bumperGeometry = new THREE.TubeGeometry(bumperCurve, 16, 0.04, 8, false);
+      const bumperMaterial = new THREE.MeshStandardMaterial({
+        color: 0xff4520,
+        metalness: 0.6,
+        roughness: 0.4
+      });
+      
+      // Front bumper
+      const frontBumper = new THREE.Mesh(bumperGeometry, bumperMaterial);
+      frontBumper.position.set(1.15, 0.2, -0.1);
+      frontBumper.rotation.y = Math.PI / 2;
+      shuttleGroup.add(frontBumper);
+      
+      // Rear bumper
+      const rearBumper = new THREE.Mesh(bumperGeometry, bumperMaterial);
+      rearBumper.position.set(-1.15, 0.2, -0.1);
+      rearBumper.rotation.y = Math.PI / 2;
+      shuttleGroup.add(rearBumper);
+
       return shuttleGroup;
     };
 
     const spawnDetailedClusters = () => {
       const nodes: ShuttleNode[] = [];
-      // More vehicles in tighter clusters for city-like density
+      // Reduced clusters to prevent overlap
       const clusters = [
-        { center: new THREE.Vector3(-12, 2, 0), count: 8 },
-        { center: new THREE.Vector3(-8, -1, 1), count: 6 },
-        { center: new THREE.Vector3(-10, 4, -2), count: 5 },
-        { center: new THREE.Vector3(-14, -2, 1), count: 7 },
-        { center: new THREE.Vector3(-6, 1, 2), count: 4 },
+        { center: new THREE.Vector3(-12, 2, 0), count: 4 },
+        { center: new THREE.Vector3(-8, -1, 1), count: 3 },
+        { center: new THREE.Vector3(-10, 4, -2), count: 3 },
+        { center: new THREE.Vector3(-14, -2, 1), count: 4 },
+        { center: new THREE.Vector3(-6, 1, 2), count: 3 },
       ];
       let nodeId = 0;
       clusters.forEach((cluster) => {
@@ -344,11 +448,29 @@ export const ShuttleNetwork3D = () => {
           
           const shuttle = createDetailedShuttle();
           
-          // Color variations
-          const hue = 0.03 + rand() * 0.02;
-          const saturation = 0.8 + rand() * 0.2;
-          const lightness = 0.4 + rand() * 0.2;
-          const color = new THREE.Color().setHSL(hue, saturation, lightness);
+          // Enhanced reddish color variations
+          const colorVariant = rand();
+          let color: THREE.Color;
+          
+          if (colorVariant < 0.4) {
+            // Deep red variants
+            const hue = 0.02 + rand() * 0.015; // 0.02-0.035 (deep red)
+            const saturation = 0.85 + rand() * 0.15;
+            const lightness = 0.35 + rand() * 0.25;
+            color = new THREE.Color().setHSL(hue, saturation, lightness);
+          } else if (colorVariant < 0.7) {
+            // Crimson variants
+            const hue = 0.96 + rand() * 0.04; // 0.96-1.0 (crimson)
+            const saturation = 0.8 + rand() * 0.2;
+            const lightness = 0.4 + rand() * 0.3;
+            color = new THREE.Color().setHSL(hue, saturation, lightness);
+          } else {
+            // Orange-red variants
+            const hue = 0.04 + rand() * 0.02; // 0.04-0.06 (orange-red)
+            const saturation = 0.9 + rand() * 0.1;
+            const lightness = 0.45 + rand() * 0.2;
+            color = new THREE.Color().setHSL(hue, saturation, lightness);
+          }
           
           shuttle.traverse((child) => {
             if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
