@@ -97,34 +97,74 @@ export const ShuttleNetwork3D = () => {
     const createDetailedShuttle = () => {
       const shuttleGroup = new THREE.Group();
 
-      // Create curved body using multiple segments for smooth curves
-      const bodyShape = new THREE.Shape();
-      bodyShape.moveTo(-1.0, 0);
-      bodyShape.quadraticCurveTo(-1.2, 0.1, -1.1, 0.3);
-      bodyShape.quadraticCurveTo(-1.0, 0.6, -0.8, 0.7);
-      bodyShape.lineTo(0.8, 0.7);
-      bodyShape.quadraticCurveTo(1.0, 0.6, 1.1, 0.3);
-      bodyShape.quadraticCurveTo(1.2, 0.1, 1.0, 0);
-      bodyShape.lineTo(-1.0, 0);
+      // Create realistic car body with complex curves and multiple sections
+      // Main chassis with realistic car proportions
+      const chassisShape = new THREE.Shape();
+      chassisShape.moveTo(-0.9, 0);
+      chassisShape.quadraticCurveTo(-1.05, 0.08, -1.0, 0.25);
+      chassisShape.quadraticCurveTo(-0.95, 0.5, -0.85, 0.6);
+      chassisShape.lineTo(0.85, 0.6);
+      chassisShape.quadraticCurveTo(0.95, 0.5, 1.0, 0.25);
+      chassisShape.quadraticCurveTo(1.05, 0.08, 0.9, 0);
+      chassisShape.lineTo(-0.9, 0);
 
-      const extrudeSettings = {
-        depth: 0.8,
+      const chassisExtrudeSettings = {
+        depth: 0.7,
         bevelEnabled: true,
-        bevelSegments: 8,
-        steps: 2,
-        bevelSize: 0.05,
-        bevelThickness: 0.02
+        bevelSegments: 12,
+        steps: 3,
+        bevelSize: 0.04,
+        bevelThickness: 0.015
       };
 
-      const bodyGeometry = new THREE.ExtrudeGeometry(bodyShape, extrudeSettings);
+      const chassisGeometry = new THREE.ExtrudeGeometry(chassisShape, chassisExtrudeSettings);
       const bodyMaterial = new THREE.MeshStandardMaterial({
-        color: 0xff6b35,
-        metalness: 0.8,
-        roughness: 0.2
+        color: 0xd32f20,
+        metalness: 0.85,
+        roughness: 0.15,
+        envMapIntensity: 1.2
       });
-      const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-      body.position.set(0, 0.3, -0.4);
-      shuttleGroup.add(body);
+      const chassis = new THREE.Mesh(chassisGeometry, bodyMaterial);
+      chassis.position.set(0, 0.28, -0.35);
+      shuttleGroup.add(chassis);
+
+      // Hood section with detailed curves
+      const hoodShape = new THREE.Shape();
+      hoodShape.moveTo(-0.5, 0);
+      hoodShape.quadraticCurveTo(-0.1, 0.12, 0.5, 0);
+      hoodShape.quadraticCurveTo(0.6, 0.05, 0.55, 0.15);
+      hoodShape.lineTo(-0.55, 0.15);
+      hoodShape.quadraticCurveTo(-0.6, 0.05, -0.5, 0);
+
+      const hoodGeometry = new THREE.ExtrudeGeometry(hoodShape, { 
+        depth: 0.3, 
+        bevelEnabled: true, 
+        bevelSegments: 8, 
+        bevelSize: 0.02,
+        bevelThickness: 0.01 
+      });
+      const hood = new THREE.Mesh(hoodGeometry, bodyMaterial);
+      hood.position.set(0.75, 0.6, -0.5);
+      shuttleGroup.add(hood);
+
+      // Trunk section
+      const trunkShape = new THREE.Shape();
+      trunkShape.moveTo(-0.4, 0);
+      trunkShape.quadraticCurveTo(0, 0.08, 0.4, 0);
+      trunkShape.quadraticCurveTo(0.45, 0.03, 0.4, 0.12);
+      trunkShape.lineTo(-0.4, 0.12);
+      trunkShape.quadraticCurveTo(-0.45, 0.03, -0.4, 0);
+
+      const trunkGeometry = new THREE.ExtrudeGeometry(trunkShape, { 
+        depth: 0.25, 
+        bevelEnabled: true, 
+        bevelSegments: 6, 
+        bevelSize: 0.015,
+        bevelThickness: 0.008 
+      });
+      const trunk = new THREE.Mesh(trunkGeometry, bodyMaterial);
+      trunk.position.set(-0.75, 0.6, -0.45);
+      shuttleGroup.add(trunk);
 
       // Curved roof using LatheGeometry for smooth dome
       const roofPoints = [];
@@ -143,39 +183,58 @@ export const ShuttleNetwork3D = () => {
       roof.scale.set(1, 1, 1.2);
       shuttleGroup.add(roof);
 
-      // Curved windshield using CylinderGeometry bent
-      const windshieldGeometry = new THREE.CylinderGeometry(0.85, 0.85, 0.02, 16, 1, false, 0, Math.PI);
+      // Front windshield with proper curvature and alignment
+      const windshieldGeometry = new THREE.CylinderGeometry(0.7, 0.8, 0.03, 16, 1, false, 0, Math.PI * 0.8);
       const windshieldMaterial = new THREE.MeshStandardMaterial({
-        color: 0x87ceeb,
+        color: 0x2e4f6f,
         transparent: true,
-        opacity: 0.6,
-        metalness: 0.1,
-        roughness: 0.1
+        opacity: 0.75,
+        metalness: 0.3,
+        roughness: 0.05,
+        side: THREE.DoubleSide
       });
       const windshield = new THREE.Mesh(windshieldGeometry, windshieldMaterial);
-      windshield.position.set(0, 0.65, 0.2);
+      windshield.position.set(0.85, 0.6, -0.1);
       windshield.rotation.z = Math.PI;
+      windshield.rotation.x = -0.1;
       shuttleGroup.add(windshield);
 
-      // Side windows with curves
+      // Properly aligned side windows with realistic glass
       const sideWindowShape = new THREE.Shape();
       sideWindowShape.moveTo(0, 0);
-      sideWindowShape.quadraticCurveTo(0.3, 0.05, 0.6, 0);
-      sideWindowShape.lineTo(0.6, 0.3);
-      sideWindowShape.quadraticCurveTo(0.3, 0.35, 0, 0.3);
+      sideWindowShape.quadraticCurveTo(0.25, 0.02, 0.5, 0);
+      sideWindowShape.lineTo(0.5, 0.25);
+      sideWindowShape.quadraticCurveTo(0.25, 0.28, 0, 0.25);
       sideWindowShape.lineTo(0, 0);
 
-      const sideWindowGeometry = new THREE.ExtrudeGeometry(sideWindowShape, { depth: 0.02, bevelEnabled: false });
+      const sideWindowGeometry = new THREE.ExtrudeGeometry(sideWindowShape, { 
+        depth: 0.015, 
+        bevelEnabled: true, 
+        bevelSize: 0.002,
+        bevelThickness: 0.001 
+      });
       
+      // Left side window (driver side)
       const leftWindow = new THREE.Mesh(sideWindowGeometry, windshieldMaterial);
-      leftWindow.position.set(0.9, 0.5, -0.15);
+      leftWindow.position.set(0.82, 0.55, -0.35);
       leftWindow.rotation.y = Math.PI / 2;
+      leftWindow.rotation.x = -0.05;
       shuttleGroup.add(leftWindow);
       
+      // Right side window (passenger side)
       const rightWindow = new THREE.Mesh(sideWindowGeometry, windshieldMaterial);
-      rightWindow.position.set(-0.9, 0.5, -0.15);
+      rightWindow.position.set(-0.82, 0.55, -0.35);
       rightWindow.rotation.y = -Math.PI / 2;
+      rightWindow.rotation.x = -0.05;
       shuttleGroup.add(rightWindow);
+
+      // Rear window
+      const rearWindowGeometry = new THREE.PlaneGeometry(0.6, 0.3);
+      const rearWindow = new THREE.Mesh(rearWindowGeometry, windshieldMaterial);
+      rearWindow.position.set(-0.85, 0.6, -0.1);
+      rearWindow.rotation.y = Math.PI;
+      rearWindow.rotation.x = 0.1;
+      shuttleGroup.add(rearWindow);
 
       // Detailed wheels with rims and tires
       const createWheel = () => {
@@ -429,13 +488,13 @@ export const ShuttleNetwork3D = () => {
 
     const spawnDetailedClusters = () => {
       const nodes: ShuttleNode[] = [];
-      // Reduced clusters to prevent overlap
+      // Further reduced clusters to prevent overlap with better spacing
       const clusters = [
-        { center: new THREE.Vector3(-12, 2, 0), count: 4 },
-        { center: new THREE.Vector3(-8, -1, 1), count: 3 },
-        { center: new THREE.Vector3(-10, 4, -2), count: 3 },
-        { center: new THREE.Vector3(-14, -2, 1), count: 4 },
-        { center: new THREE.Vector3(-6, 1, 2), count: 3 },
+        { center: new THREE.Vector3(-12, 2, 0), count: 3 },
+        { center: new THREE.Vector3(-8, -1, 1), count: 2 },
+        { center: new THREE.Vector3(-10, 4, -2), count: 2 },
+        { center: new THREE.Vector3(-14, -2, 1), count: 3 },
+        { center: new THREE.Vector3(-6, 1, 2), count: 2 },
       ];
       let nodeId = 0;
       clusters.forEach((cluster) => {
@@ -448,27 +507,27 @@ export const ShuttleNetwork3D = () => {
           
           const shuttle = createDetailedShuttle();
           
-          // Enhanced reddish color variations
+          // Enhanced color variations optimized for light mode visibility
           const colorVariant = rand();
           let color: THREE.Color;
           
-          if (colorVariant < 0.4) {
-            // Deep red variants
-            const hue = 0.02 + rand() * 0.015; // 0.02-0.035 (deep red)
-            const saturation = 0.85 + rand() * 0.15;
-            const lightness = 0.35 + rand() * 0.25;
+          if (colorVariant < 0.3) {
+            // Vibrant crimson red - high contrast in light mode
+            const hue = 0.0 + rand() * 0.01; // Pure red spectrum
+            const saturation = 0.9 + rand() * 0.1;
+            const lightness = 0.3 + rand() * 0.15; // Darker for light mode visibility
             color = new THREE.Color().setHSL(hue, saturation, lightness);
-          } else if (colorVariant < 0.7) {
-            // Crimson variants
-            const hue = 0.96 + rand() * 0.04; // 0.96-1.0 (crimson)
-            const saturation = 0.8 + rand() * 0.2;
-            const lightness = 0.4 + rand() * 0.3;
+          } else if (colorVariant < 0.6) {
+            // Dark burgundy variants - excellent light mode contrast
+            const hue = 0.97 + rand() * 0.03; // Deep red-purple
+            const saturation = 0.85 + rand() * 0.15;
+            const lightness = 0.25 + rand() * 0.2; // Very dark for visibility
             color = new THREE.Color().setHSL(hue, saturation, lightness);
           } else {
-            // Orange-red variants
-            const hue = 0.04 + rand() * 0.02; // 0.04-0.06 (orange-red)
-            const saturation = 0.9 + rand() * 0.1;
-            const lightness = 0.45 + rand() * 0.2;
+            // Rich orange-red variants - warm but visible
+            const hue = 0.03 + rand() * 0.02; // Orange-red spectrum
+            const saturation = 0.95 + rand() * 0.05;
+            const lightness = 0.35 + rand() * 0.15; // Medium dark
             color = new THREE.Color().setHSL(hue, saturation, lightness);
           }
           
