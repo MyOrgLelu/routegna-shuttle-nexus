@@ -166,81 +166,54 @@ export const ShuttleNetwork3D = () => {
       trunk.position.set(-0.75, 0.6, -0.45);
       shuttleGroup.add(trunk);
 
-      // Curved roof using LatheGeometry for smooth dome
-      const roofPoints = [];
-      for (let i = 0; i <= 10; i++) {
-        const angle = (i / 10) * Math.PI * 0.5;
-        roofPoints.push(new THREE.Vector2(Math.sin(angle) * 0.9, Math.cos(angle) * 0.3 + 0.4));
-      }
-      const roofGeometry = new THREE.LatheGeometry(roofPoints, 16);
-      const roofMaterial = new THREE.MeshStandardMaterial({
-        color: 0xff4520,
-        metalness: 0.7,
-        roughness: 0.3
-      });
-      const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-      roof.position.y = 0.5;
-      roof.scale.set(1, 1, 1.2);
-      shuttleGroup.add(roof);
+      // Remove the circular roof - no longer needed
 
-      // Front windshield with proper curvature and alignment
-      const windshieldGeometry = new THREE.CylinderGeometry(0.7, 0.8, 0.03, 16, 1, false, 0, Math.PI * 0.8);
+      // Front windshield with proper positioning on car
+      const windshieldGeometry = new THREE.PlaneGeometry(0.8, 0.4);
       const windshieldMaterial = new THREE.MeshStandardMaterial({
-        color: 0x2e4f6f,
+        color: 0x1a4d6b,
         transparent: true,
-        opacity: 0.75,
+        opacity: 0.8,
         metalness: 0.3,
         roughness: 0.05,
         side: THREE.DoubleSide
       });
       const windshield = new THREE.Mesh(windshieldGeometry, windshieldMaterial);
-      windshield.position.set(0.85, 0.6, -0.1);
-      windshield.rotation.z = Math.PI;
-      windshield.rotation.x = -0.1;
+      windshield.position.set(0.75, 0.65, -0.1);
+      windshield.rotation.y = 0;
+      windshield.rotation.x = -0.15; // Slight angle for realism
       shuttleGroup.add(windshield);
 
-      // Properly aligned side windows with realistic glass
-      const sideWindowShape = new THREE.Shape();
-      sideWindowShape.moveTo(0, 0);
-      sideWindowShape.quadraticCurveTo(0.25, 0.02, 0.5, 0);
-      sideWindowShape.lineTo(0.5, 0.25);
-      sideWindowShape.quadraticCurveTo(0.25, 0.28, 0, 0.25);
-      sideWindowShape.lineTo(0, 0);
-
-      const sideWindowGeometry = new THREE.ExtrudeGeometry(sideWindowShape, { 
-        depth: 0.015, 
-        bevelEnabled: true, 
-        bevelSize: 0.002,
-        bevelThickness: 0.001 
-      });
+      // Properly aligned side windows
+      const sideWindowGeometry = new THREE.PlaneGeometry(0.5, 0.25);
       
-      // Left side window (driver side)
+      // Left side window (properly positioned on car side)
       const leftWindow = new THREE.Mesh(sideWindowGeometry, windshieldMaterial);
-      leftWindow.position.set(0.82, 0.55, -0.35);
-      leftWindow.rotation.y = Math.PI / 2;
+      leftWindow.position.set(0.2, 0.6, -0.85);
+      leftWindow.rotation.y = 0;
       leftWindow.rotation.x = -0.05;
       shuttleGroup.add(leftWindow);
       
-      // Right side window (passenger side)
+      // Right side window (properly positioned on car side)
       const rightWindow = new THREE.Mesh(sideWindowGeometry, windshieldMaterial);
-      rightWindow.position.set(-0.82, 0.55, -0.35);
-      rightWindow.rotation.y = -Math.PI / 2;
+      rightWindow.position.set(0.2, 0.6, 0.15);
+      rightWindow.rotation.y = 0;
       rightWindow.rotation.x = -0.05;
       shuttleGroup.add(rightWindow);
 
       // Rear window
       const rearWindowGeometry = new THREE.PlaneGeometry(0.6, 0.3);
       const rearWindow = new THREE.Mesh(rearWindowGeometry, windshieldMaterial);
-      rearWindow.position.set(-0.85, 0.6, -0.1);
+      rearWindow.position.set(-0.75, 0.65, -0.1);
       rearWindow.rotation.y = Math.PI;
       rearWindow.rotation.x = 0.1;
       shuttleGroup.add(rearWindow);
 
-      // Detailed wheels with rims and tires
+      // Fixed wheel creation with proper orientation
       const createWheel = () => {
         const wheelGroup = new THREE.Group();
         
-        // Tire (torus for realistic shape)
+        // Tire (torus for realistic shape) - oriented correctly
         const tireGeometry = new THREE.TorusGeometry(0.18, 0.08, 8, 16);
         const tireMaterial = new THREE.MeshStandardMaterial({
           color: 0x1a1a1a,
@@ -248,10 +221,10 @@ export const ShuttleNetwork3D = () => {
           metalness: 0.1
         });
         const tire = new THREE.Mesh(tireGeometry, tireMaterial);
-        tire.rotation.x = Math.PI / 2;
+        // No rotation needed - wheel group will be rotated
         wheelGroup.add(tire);
 
-        // Rim (cylinder with metallic material)
+        // Rim (cylinder with metallic material) - oriented correctly
         const rimGeometry = new THREE.CylinderGeometry(0.14, 0.14, 0.08, 12);
         const rimMaterial = new THREE.MeshStandardMaterial({
           color: 0x888888,
@@ -259,10 +232,10 @@ export const ShuttleNetwork3D = () => {
           roughness: 0.1
         });
         const rim = new THREE.Mesh(rimGeometry, rimMaterial);
-        rim.rotation.z = Math.PI / 2;
+        // Cylinder is already oriented correctly for wheel
         wheelGroup.add(rim);
 
-        // Spokes
+        // Spokes - properly positioned for vertical wheel
         for (let i = 0; i < 5; i++) {
           const spokeGeometry = new THREE.BoxGeometry(0.02, 0.12, 0.01);
           const spoke = new THREE.Mesh(spokeGeometry, rimMaterial);
@@ -274,7 +247,7 @@ export const ShuttleNetwork3D = () => {
         return wheelGroup;
       };
 
-      // Position wheels
+      // Position wheels properly on the car (not flat on ground)
       const wheels = [
         { pos: [0.7, 0.18, -0.6], name: 'frontLeft' },
         { pos: [0.7, 0.18, 0.2], name: 'frontRight' },
@@ -285,6 +258,8 @@ export const ShuttleNetwork3D = () => {
       wheels.forEach(wheelData => {
         const wheel = createWheel();
         wheel.position.set(...wheelData.pos);
+        // Properly orient wheels to be vertical (not flat)
+        wheel.rotation.x = Math.PI / 2;
         shuttleGroup.add(wheel);
       });
 
@@ -507,27 +482,27 @@ export const ShuttleNetwork3D = () => {
           
           const shuttle = createDetailedShuttle();
           
-          // Enhanced color variations optimized for light mode visibility
+          // Bright vivid colors optimized for light mode visibility
           const colorVariant = rand();
           let color: THREE.Color;
           
           if (colorVariant < 0.3) {
-            // Vibrant crimson red - high contrast in light mode
+            // Bright vivid red - highly visible in light mode
             const hue = 0.0 + rand() * 0.01; // Pure red spectrum
-            const saturation = 0.9 + rand() * 0.1;
-            const lightness = 0.3 + rand() * 0.15; // Darker for light mode visibility
+            const saturation = 1.0; // Maximum saturation for vividness
+            const lightness = 0.5 + rand() * 0.15; // Bright enough to stand out
             color = new THREE.Color().setHSL(hue, saturation, lightness);
           } else if (colorVariant < 0.6) {
-            // Dark burgundy variants - excellent light mode contrast
-            const hue = 0.97 + rand() * 0.03; // Deep red-purple
-            const saturation = 0.85 + rand() * 0.15;
-            const lightness = 0.25 + rand() * 0.2; // Very dark for visibility
+            // Bright magenta-red variants - very visible
+            const hue = 0.93 + rand() * 0.05; // Magenta-red spectrum
+            const saturation = 0.95 + rand() * 0.05;
+            const lightness = 0.45 + rand() * 0.2; // Medium-bright
             color = new THREE.Color().setHSL(hue, saturation, lightness);
           } else {
-            // Rich orange-red variants - warm but visible
-            const hue = 0.03 + rand() * 0.02; // Orange-red spectrum
-            const saturation = 0.95 + rand() * 0.05;
-            const lightness = 0.35 + rand() * 0.15; // Medium dark
+            // Bright orange-red variants - warm and vivid
+            const hue = 0.02 + rand() * 0.03; // Orange-red spectrum
+            const saturation = 1.0; // Maximum saturation
+            const lightness = 0.55 + rand() * 0.1; // Bright
             color = new THREE.Color().setHSL(hue, saturation, lightness);
           }
           
