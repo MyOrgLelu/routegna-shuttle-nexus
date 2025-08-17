@@ -209,57 +209,46 @@ export const ShuttleNetwork3D = () => {
       rearWindow.rotation.x = 0.1;
       shuttleGroup.add(rearWindow);
 
-      // Fixed wheel creation with proper orientation
+      // Create properly oriented black tires (4 per car)
       const createWheel = () => {
         const wheelGroup = new THREE.Group();
         
-        // Tire (torus for realistic shape) - oriented correctly
-        const tireGeometry = new THREE.TorusGeometry(0.18, 0.08, 8, 16);
+        // Tire using a cylinder geometry, rotated to be vertical
+        const tireGeometry = new THREE.CylinderGeometry(0.18, 0.18, 0.12, 16);
         const tireMaterial = new THREE.MeshStandardMaterial({
-          color: 0x1a1a1a,
-          roughness: 0.9,
-          metalness: 0.1
+          color: 0x111111, // Black color
+          roughness: 0.95,
+          metalness: 0.05
         });
         const tire = new THREE.Mesh(tireGeometry, tireMaterial);
-        // No rotation needed - wheel group will be rotated
+        tire.rotation.z = Math.PI / 2; // Rotate to stand vertically like a real tire
         wheelGroup.add(tire);
 
-        // Rim (cylinder with metallic material) - oriented correctly
-        const rimGeometry = new THREE.CylinderGeometry(0.14, 0.14, 0.08, 12);
+        // Rim (smaller cylinder inside tire)
+        const rimGeometry = new THREE.CylinderGeometry(0.12, 0.12, 0.13, 12);
         const rimMaterial = new THREE.MeshStandardMaterial({
-          color: 0x888888,
+          color: 0x666666,
           metalness: 0.9,
           roughness: 0.1
         });
         const rim = new THREE.Mesh(rimGeometry, rimMaterial);
-        // Cylinder is already oriented correctly for wheel
+        rim.rotation.z = Math.PI / 2; // Same rotation as tire
         wheelGroup.add(rim);
-
-        // Spokes - properly positioned for vertical wheel
-        for (let i = 0; i < 5; i++) {
-          const spokeGeometry = new THREE.BoxGeometry(0.02, 0.12, 0.01);
-          const spoke = new THREE.Mesh(spokeGeometry, rimMaterial);
-          spoke.rotation.z = (i / 5) * Math.PI * 2;
-          spoke.position.y = 0.06;
-          wheelGroup.add(spoke);
-        }
 
         return wheelGroup;
       };
 
-      // Position wheels properly on the car (not flat on ground)
-      const wheels = [
-        { pos: [0.7, 0.18, -0.6], name: 'frontLeft' },
-        { pos: [0.7, 0.18, 0.2], name: 'frontRight' },
-        { pos: [-0.7, 0.18, -0.6], name: 'rearLeft' },
-        { pos: [-0.7, 0.18, 0.2], name: 'rearRight' }
+      // Position 4 wheels properly on the car corners
+      const wheelPositions = [
+        [0.6, 0.18, -0.5],  // front left
+        [0.6, 0.18, 0.15],  // front right  
+        [-0.6, 0.18, -0.5], // rear left
+        [-0.6, 0.18, 0.15]  // rear right
       ];
 
-      wheels.forEach(wheelData => {
+      wheelPositions.forEach(position => {
         const wheel = createWheel();
-        wheel.position.set(...wheelData.pos);
-        // Properly orient wheels to be vertical (not flat)
-        wheel.rotation.x = Math.PI / 2;
+        wheel.position.set(...position);
         shuttleGroup.add(wheel);
       });
 
